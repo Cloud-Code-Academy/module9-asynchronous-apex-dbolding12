@@ -27,9 +27,27 @@ public with sharing class NextStepFuture {
      * Opportunity Next Step field is a standard field
      * Update the corresponding test class AsynchronousTest and test method nextStepFuture_testUpdateAllNextStep to cover test this method
      */
-    //[public | private ] [static] data_type method_name (input parameters) {
+    @future
+    public static void updateNextStep() {
     //  The body of the method
-    //}
+        String nextStep = 'Meeting in the future';
+
+        List<Account> accts = [SELECT Id, Next_Step__c
+                              FROM Account LIMIT 2000];
+        for (Account acct : accts) {
+            acct.Next_Step__c = nextStep;
+        }        
+        update accts;
+
+        List<Opportunity> opps = [SELECT Id, NextStep
+                                  FROM Opportunity LIMIT 2000];
+        for (Opportunity opp : opps) {
+            opp.NextStep = nextStep;
+        }
+        System.debug(opps);
+        update opps;
+        
+    }
 
     /*
     * Question 2
@@ -42,8 +60,7 @@ public with sharing class NextStepFuture {
         Opportunity bigDeal = new Opportunity();
         insertBigDeal(bigDeal);
 
-        UserRole[] roles = [SELECT Id, Name FROM UserRole WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
-        updateUserRoleName(roles);
+        updateUserRoleName();
     }
 
     // Helper method to insert big deal
@@ -53,24 +70,32 @@ public with sharing class NextStepFuture {
         opp.StageName = 'Closed Won'; 
         opp.CloseDate = Date.today();
         
+        System.debug(opp);
         insert opp;
     }
 
 
     // Helper method to update role name
-    private static void updateUserRoleName(UserRole[] roles){
+    @future    
+    private static void updateUserRoleName(){
+        UserRole[] roles = [SELECT Id, Name 
+                            FROM UserRole 
+                            WHERE Id = :UserInfo.getUserRoleId() OR Name = 'CRO' LIMIT 1];
+        
         UserRole role;
-        if (roles.isEmpty()) {
-            role = new UserRole();
-            role.portalType = 'None'; 
-            role.CaseAccessForAccountOwner = 'Edit'; 
-            // role.OpportunityAccessForAccountOwner = 'Edit'; //This may need to be uncommented depending on your orgs Organization Wide Defaults(OWD) settings. If you are receiving FIELD_INTEGRITY_EXCEPTION, field integrity exception: unknown (Opportunity access level below organization default): [unknown], uncomment this line.
-        } else {
-            role = roles[0];
-        }
-
-        role.Name = 'CRO';
-
+            if (roles.isEmpty()) {
+                role = new UserRole();
+                role.portalType = 'None'; 
+                role.CaseAccessForAccountOwner = 'Edit'; 
+                // role.OpportunityAccessForAccountOwner = 'Edit'; //This may need to be uncommented depending on your orgs Organization Wide Defaults(OWD) settings. If you are receiving FIELD_INTEGRITY_EXCEPTION, field integrity exception: unknown (Opportunity access level below organization default): [unknown], uncomment this line.
+            } else {
+                role = roles[0];                
+                
+            }            
+            
+                role.Name = 'CRO';   
+        
+        System.debug(roles);
         upsert role;
     }
 }
